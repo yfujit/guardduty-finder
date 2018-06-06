@@ -1,0 +1,33 @@
+service: guardduty-finder
+
+provider:
+  name: aws
+  runtime: python3.6
+  stage: ${opt:stage, self:custom.defaultStage}
+  region: ${opt:region, self:custom.defaultRegion}
+
+custom:
+  defaultStage: dev
+  defaultRegion: us-east-1
+  otherfile:
+    environment: ${file(./config/webhookurl.yml)}
+
+functions:
+  slack_notificater:
+    handler: slack_notificater.lambda_handler
+    events:
+      - cloudwatchEvent:
+          event:
+            source:
+              - "aws.guardduty"
+            detail-type:
+              - "GuardDuty Finding"
+    environment:
+      WEBHOOK_URL: ${self:custom.otherfile.environment.WEBHOOK_URL}
+
+resources:
+  Resources:
+    GuardDutyDetector:
+      Type: "AWS::GuardDuty::Detector"
+      Properties:
+        Enable: true
