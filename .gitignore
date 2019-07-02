@@ -20,3 +20,4 @@ var/
 # Serverless directories
 .serverless
 webhookurl.yml
+package-lock.json
